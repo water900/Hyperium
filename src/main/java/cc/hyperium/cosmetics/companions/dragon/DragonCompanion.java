@@ -2,30 +2,99 @@ package cc.hyperium.cosmetics.companions.dragon;
 
 import cc.hyperium.config.Settings;
 import cc.hyperium.cosmetics.AbstractCosmetic;
-import cc.hyperium.event.InvokeEvent;
-import cc.hyperium.event.RenderEntitiesEvent;
-import cc.hyperium.event.RenderPlayerEvent;
-import cc.hyperium.event.TickEvent;
-import cc.hyperium.event.WorldChangeEvent;
-import cc.hyperium.mixinsimp.renderer.IMixinRenderManager;
+import cc.hyperium.event.*;
 import cc.hyperium.purchases.EnumPurchaseType;
 import cc.hyperium.purchases.HyperiumPurchase;
 import cc.hyperium.purchases.PurchaseApi;
 import net.minecraft.client.Minecraft;
-import net.minecraft.client.entity.AbstractClientPlayer;
-import net.minecraft.client.renderer.GlStateManager;
-import net.minecraft.client.renderer.entity.RenderManager;
+import net.minecraft.client.multiplayer.WorldClient;
 import net.minecraft.entity.Entity;
-import net.minecraft.entity.boss.EntityDragon;
 import net.minecraft.entity.player.EntityPlayer;
-import net.minecraft.util.MathHelper;
+import net.minecraft.world.World;
 
-import java.util.HashMap;
-import java.util.concurrent.ThreadLocalRandom;
+import java.util.*;
 
 public class DragonCompanion extends AbstractCosmetic {
 
-    private float scale;
+    private List<EntityPlayer> toAdd = new ArrayList<>();
+    private Map<UUID, CustomDragon> dragons = new HashMap<>();
+
+    public DragonCompanion() {
+        super(false, EnumPurchaseType.HAMSTER_COMPANION);
+    }
+
+    @InvokeEvent
+    public void renderEntities(RenderEntitiesEvent entitiesEvent) {
+        if (Settings.SHOW_COMPANION_IN_1ST_PERSON) {
+            renderPlayer(new RenderPlayerEvent(Minecraft.getMinecraft().thePlayer, Minecraft.getMinecraft().getRenderManager(), 0, 0, 0,
+                    entitiesEvent.getPartialTicks()));
+        }
+    }
+
+    @InvokeEvent
+    public void renderPlayer(RenderPlayerEvent e) {
+        if (Minecraft.getMinecraft().theWorld == null) return;
+        UUID uuid = e.getEntity().getUniqueID();
+
+        if (!isPurchasedBy(uuid)) return;
+        if (dragons.containsKey(uuid) || toAdd.contains(e.getEntity())) return;
+
+        HyperiumPurchase packageIfReady = PurchaseApi.getInstance().getPackageIfReady(uuid);
+
+        if (packageIfReady == null) return;
+        if (packageIfReady.getCachedSettings().getCurrentCompanion() != EnumPurchaseType.DRAGON_COMPANION) return;
+
+        toAdd.add(e.getEntity());
+    }
+
+    @InvokeEvent
+    public void onTick(TickEvent e) {
+        WorldClient theWorld = Minecraft.getMinecraft().theWorld;
+        if (theWorld == null) return;
+
+        for (EntityPlayer player : toAdd) {
+            spawnDragon(player);
+        }
+
+        toAdd.clear();
+
+        Iterator<Map.Entry<UUID, CustomDragon>> ite = dragons.entrySet().iterator();
+
+        while (ite.hasNext()) {
+            Map.Entry<UUID, CustomDragon> next = ite.next();
+            if (!worldHasEntityWithUUID(theWorld, next.getKey())) {
+                theWorld.unloadEntities(Collections.singletonList(next.getValue()));
+                ite.remove();
+            }
+        }
+    }
+
+    @InvokeEvent
+    public void onWorldChange(WorldChangeEvent e) {
+        dragons.clear();
+    }
+
+    public boolean worldHasEntityWithUUID(World world, UUID id) {
+        for (Entity entity : world.loadedEntityList) {
+            if (entity.getUniqueID().equals(id)) return true;
+        }
+
+        return false;
+    }
+
+    public void spawnDragon(EntityPlayer player) {
+        WorldClient theWorld = Minecraft.getMinecraft().theWorld;
+
+        CustomDragon hamster = new CustomDragon(theWorld);
+        hamster.setPosition(player.posX, player.posY, player.posZ);
+        hamster.setOwnerId(player.getUniqueID().toString());
+
+        theWorld.spawnEntityInWorld(hamster);
+
+        dragons.put(player.getUniqueID(), hamster);
+    }
+
+    /*private float scale;
     private HashMap<EntityPlayer, CustomDragon> dragonHashMap = new HashMap<>();
 
     public DragonCompanion() {
@@ -243,6 +312,6 @@ public class DragonCompanion extends AbstractCosmetic {
                     y,
                     current.nextDouble(-BOUNDS + posZ, BOUNDS + posZ));
         }
-    }
+    }*/
 
 }

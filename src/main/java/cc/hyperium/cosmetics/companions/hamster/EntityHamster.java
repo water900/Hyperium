@@ -27,7 +27,6 @@ public class EntityHamster extends EntityTameable {
         this.tasks.addTask(3, new EntityAILookIdle(this));
 
         setTamed(true);
-
         this.preventEntitySpawning = false;
     }
 
@@ -39,6 +38,7 @@ public class EntityHamster extends EntityTameable {
     }
 
     @Override
+    @SuppressWarnings("Duplicates")
     public void moveEntityWithHeading(float strafe, float forward) {
         if (!this.isInWater())
         {

@@ -1,12 +1,11 @@
 package cc.hyperium.mixins.renderer;
 
+import cc.hyperium.cosmetics.companions.dragon.CustomDragon;
+import cc.hyperium.cosmetics.companions.dragon.RenderCustomDragon;
 import cc.hyperium.cosmetics.companions.hamster.EntityHamster;
 import cc.hyperium.cosmetics.companions.hamster.RenderHamster;
 import cc.hyperium.mixinsimp.renderer.IMixinRenderManager;
-import net.minecraft.client.renderer.entity.Render;
-import net.minecraft.client.renderer.entity.RenderItem;
-import net.minecraft.client.renderer.entity.RenderManager;
-import net.minecraft.client.renderer.entity.RenderPlayer;
+import net.minecraft.client.renderer.entity.*;
 import net.minecraft.client.renderer.texture.TextureManager;
 import net.minecraft.entity.Entity;
 import org.spongepowered.asm.mixin.Mixin;
@@ -35,7 +34,10 @@ public class MixinRenderManger implements IMixinRenderManager {
 
     @Inject(method = "<init>", at = @At("RETURN"))
     private void injectEntities(TextureManager renderEngineIn, RenderItem itemRendererIn, CallbackInfo ci) {
-        this.entityRenderMap.put(EntityHamster.class, new RenderHamster((RenderManager) (Object) this));
+        RenderManager thiz = (RenderManager) (Object) this;
+
+        this.entityRenderMap.put(EntityHamster.class, new RenderHamster(thiz));
+        this.entityRenderMap.put(CustomDragon.class, new RenderCustomDragon(thiz));
     }
 
     @Override
