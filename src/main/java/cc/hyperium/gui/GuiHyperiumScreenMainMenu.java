@@ -427,35 +427,8 @@ public class GuiHyperiumScreenMainMenu extends GuiHyperiumScreen implements GuiY
 
     }
 
-    private int color(int i, int i1, int i2, int i3) {
-        return new Color(i, i1, i2, i3).getRGB();
-    }
-
-    private DynamicTexture getCachedTexture(String t) {
-        final DynamicTexture[] texture = {this.cachedImages.get(t)};
-        if (texture[0] == null) {
-            Minecraft.getMinecraft().addScheduledTask(() -> {
-                try {
-                    texture[0] = new DynamicTexture(ImageIO
-                            .read(new URL("https://crafatar.com/avatars/" + t + "?size=30?default=MHF_Steve&overlay")));
-
-                } catch (Exception ignored) {
-                    try {
-                        texture[0] = new DynamicTexture(ImageIO
-                                .read(new URL("https://crafatar.com/avatars/c06f89064c8a49119c29ea1dbd1aab82")));
-                    } catch (IOException e) {
-                        e.printStackTrace();
-                    }
-                }
-                this.cachedImages.put(t, texture[0]);
-            });
-
-        }
-        return texture[0];
-    }
-
     @Override
-    protected void keyTyped(char typedChar, int keyCode) throws IOException {
+    protected void keyTyped(char typedChar, int keyCode) {
         if (keyCode == Keyboard.KEY_B) {
             Minecraft.getMinecraft().displayGuiScreen(new ChangeBackgroundGui(this));
         }

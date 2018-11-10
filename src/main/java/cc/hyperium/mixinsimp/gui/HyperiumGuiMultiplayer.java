@@ -1,5 +1,7 @@
 package cc.hyperium.mixinsimp.gui;
 
+import cc.hyperium.gui.GuiHyperiumMultiplayer;
+import net.minecraft.client.Minecraft;
 import net.minecraft.client.gui.GuiMultiplayer;
 
 public class HyperiumGuiMultiplayer {
@@ -9,5 +11,7 @@ public class HyperiumGuiMultiplayer {
         this.parent = parent;
     }
 
-
+    public void drawScreen(int mouseX, int mouseY, float partialTicks) {
+        Minecraft.getMinecraft().displayGuiScreen(new GuiHyperiumMultiplayer());
+    }
 }
